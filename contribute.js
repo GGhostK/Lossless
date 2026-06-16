@@ -483,13 +483,17 @@ document.addEventListener('DOMContentLoaded', () => {
             loaderIcon.style.display = 'block';
             searchTimeout = setTimeout(async () => {
                 try {
-                    const apiUrl = `https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=song&limit=10`;
+                    let apiUrl = `/api/search?q=${encodeURIComponent(query)}`;
+                    if (window.location.protocol === 'file:') {
+                        apiUrl = `https://canvas.echomusic.fun/api/search?q=${encodeURIComponent(query)}`;
+                    }
+                    
                     const res = await fetch(apiUrl);
                     if (!res.ok) throw new Error('Network response was not ok');
                     const data = await res.json();
                     
                     loaderIcon.style.display = 'none';
-                    const items = (data.results || []).slice(0, 10);
+                    const items = data.results || [];
                     
                     if (items.length === 0) {
                         resultsContainer.innerHTML = '<p class="existing-no-results">No songs found.</p>';
@@ -498,9 +502,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
 
                     resultsContainer.innerHTML = items.map((item, idx) => {
-                        const songName = item.trackName || '';
-                        const artistName = item.artistName || 'Unknown Artist';
-                        const thumbnail = item.artworkUrl60 || item.artworkUrl100 || '';
+                        const songName = item.title || '';
+                        const artistName = item.artist || 'Unknown Artist';
+                        const thumbnail = item.thumbnail || '';
                         
                         return `
                             <button type="button" class="existing-result-item" data-song="${escapeAttr(songName)}" data-artist="${escapeAttr(artistName)}">
